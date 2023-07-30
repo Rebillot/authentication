@@ -2,6 +2,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
 			message: null,
+			id:[],
 			demo: [
 				{
 					title: "FIRST",
@@ -20,6 +21,92 @@ const getState = ({ getStore, getActions, setStore }) => {
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
+
+
+			getid: () => {
+				const store = getStore();
+				return store.id
+			},
+
+			login: async ({ email, password }) => {
+				try {
+					const response = await fetch(process.env.BACKEND_URL + "/login", {
+						method: "POST",
+						headers: { "Content-type": "application/json" },
+						body: JSON.stringify({ email, password }),
+					});
+					if (response.ok) {
+						const data = await response.json();
+						setStore({ authToken: data.authToken });
+					}
+				} catch (error) {
+					console.error(error)
+				}
+				return false;
+			},
+			signup: async ({ email, password }) => {
+				try {
+					const response = await fetch(process.env.BACKEND_URL + "/signup", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ email, password }),
+					});
+					if (response.ok) {
+						const data = await response.json();
+						return true; 
+					} else {
+						console.error("Signup failed");
+					}
+				} catch (error) {
+					console.error(error);
+				}
+				return false;
+			},
+
+
+			
+			login3: async (email, pass) => {
+				const options = {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						"email": email,
+						"password": pass
+					})
+				}
+				try {
+					const resp = await fetch('https://rebillot-scaling-goldfish-7q65pr4jq973x77v-3001.preview.app.github.dev/login', options)
+					if (resp.status != 200) {
+						setStore({ loginResp: true })
+						return false
+					}
+
+					const data = await resp.json()
+					sessionStorage.setItem("auth_token", data.auth_token)
+					sessionStorage.setItem("id", data.id)
+					sessionStorage.setItem("isLoggedIn", "true")
+
+					return true
+
+				}
+				catch (error) {
+					console.error("error en login")
+				}
+			},
+
+
+
+
+
+
+
+
+
+
+
+
 
 			getMessage: async () => {
 				try{

@@ -4,8 +4,17 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
+from flask_cors import CORS
+import os
+from flask import Flask, request, jsonify, url_for, Blueprint, abort
+from api.models import db, User
+from api.utils import generate_sitemap, APIException
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
 
 api = Blueprint('api', __name__)
+CORS(api)
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -16,3 +25,23 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+
+@api.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    if user:
+        return jsonify(message='User already exists'), 400
+    
+    hashed_password = generate_password_hash(data['password'], method='sha256') 
+    new_user = User(email=data['email'], password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(message='User created successfully'), 201
+
+@api.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    serialized_users = [user.serialize() for user in users]
+    return jsonify(serialized_users)
